@@ -71,7 +71,7 @@ class ModdableEntry(Entry):
 
         # Initialize the variables stored in the moddable
         # entrybox
-        textMods = ['Italics', 'Bold', 'Underline']
+        textMods = ['Italique', 'Audacieux', 'Souligner']
         self.checkVars = [IntVar() for _ in range(3)]
 
         # Create and array to store entries
@@ -82,12 +82,12 @@ class ModdableEntry(Entry):
         if numentries != 0:
             for i in range(numentries):
                 entryBox = Entry(entryFrame, textvariable=textvariable, width=width, justify=justify)
-                entryBox.pack(side=LEFT, fill=X, expand=1, pady=1.1)      
+                entryBox.pack(side=LEFT, fill=X, expand=1, pady=2)      
                 # Append each entry box to the entries array
                 self.entries.append(entryBox)
         else:
             entryBox = Entry(entryFrame, textvariable=textvariable, width=width, justify=justify)
-            entryBox.pack(side=LEFT, fill=X, expand=1, pady=1.1)
+            entryBox.pack(side=LEFT, fill=X, expand=1, pady=2)
             self.entries.append(entryBox)
 
         # Check boxes
@@ -123,8 +123,8 @@ class App(Frame):
         # Create 'itineraires' directory if it doesn't exist
         if not path.isdir('itineraires'):
             os.mkdir('itineraires')
-        if not path.isdir('in_progress_itineraires'):
-            os.mkdir('in_progress_itineraires')
+        if not path.isdir('itinéraires en cours'):
+            os.mkdir('itinéraires en cours')
 
         self.master = master
         # Inherit members from the Tk class 'Frame'
@@ -139,11 +139,11 @@ class App(Frame):
         # Initialize the toolbar. The toolbar contains four buttons:
         # 'Add Title', 'Add Subtitle', 'Add Table', and 'Generate PDF'
         self.toolBar = Menu(master)
-        self.toolBar.add_command(label='Generate PDF',  \
+        self.toolBar.add_command(label='Produire PDF',  \
                                  command=lambda: self.generate_pdf())
-        self.toolBar.add_command(label='Save Itinerary', \
+        self.toolBar.add_command(label='Enregistrer l\'itinéraire', \
                                  command=lambda: self.save_itinerary())
-        self.toolBar.add_command(label='Load Itinerary', \
+        self.toolBar.add_command(label='Itinéraire de Chargement', \
                                  command=lambda: self.load_itinerary())       
 
         #----------------------------------------------------------------------------------------------------------------------------
@@ -153,7 +153,7 @@ class App(Frame):
         saveFrame = Frame(self.mainFrame.window)
         saveFrame.pack(side=TOP)
         self.itinName = StringVar()
-        Label(saveFrame, text='Itinerary Name: ', relief=GROOVE).pack(side=LEFT)
+        Label(saveFrame, text='Nom de l\'itinéraire: ', relief=GROOVE).pack(side=LEFT)
         self.saveEntry = Entry(saveFrame, textvariable=self.itinName, width=50)
         self.saveEntry.pack(side=LEFT)
 
@@ -166,9 +166,9 @@ class App(Frame):
         # First initialize a list of 9 StringVar that will be assigned to each
         # entry box
         self.headerInfo = [StringVar(value='') for _ in range(9)]
-        headerLabels = ['Main Event Title', 'Duration of Main Event', 'Placement/Concentration', \
-                        'ITINERAIRE DE', '# of cars', 'Duration of event', \
-                        'Secteur', 'Averages (for placement only)', 'Total distance/Ideal Time']
+        headerLabels = ['Titre Principal de l\'événement', 'Durée de l\'événement Principal', 'Placement/Concentration', \
+                        'ITINERAIRE DE', 'Voitures', 'Durée de l\'événement', \
+                        'Secteur', 'Moyennes (pour placement uniquement)', 'Total Distance/Moment Idéal']
         # Initialize an array to hold all of the header entries
         # This array can be mutated by the save/load itinerary methods as well as the 
         # generate_pdf method.
@@ -278,8 +278,6 @@ class App(Frame):
         print(tmpEntry.state())
         self.tableEntries.append(tmpEntry)
         Button(tmpFrame, text='X', command=tmpFrame.destroy).pack(side=RIGHT)
-        for entry in self.tableEntries:
-            print(entry.state())
 
 
     def save_itinerary(self):
@@ -297,7 +295,7 @@ class App(Frame):
         }
         # Save the itinerary
         saveFileName = self.itinName.get()
-        with open('in_progress_itineraires\\' + saveFileName + '.json', 'w') as outfile:
+        with open('itinéraires en cours\\' + saveFileName + '.json', 'w') as outfile:
             json.dump(self.itinInfo, outfile)
         # Change the savestate of the program to true
         self.savestate = True
@@ -348,7 +346,7 @@ class App(Frame):
             doc = Document(default_filepath="temp")
 
         # Ensure the document is made with A4 paper in mind
-        doc.preamble.append(NoEscape(r'\usepackage[a4paper,margin=0.05in,includeheadfoot=True]{geometry}'))
+        doc.preamble.append(NoEscape(r'\usepackage[a4paper,margin=0.15in,includeheadfoot=True]{geometry}'))
         #------------------------------------------------------------------------------------------------------------
         # Returns the ith header entry string 
         def modifiedHString(i, string, state):
@@ -414,7 +412,7 @@ class App(Frame):
             i += 1
         #------------------------------------------------------------------------------------------------------------
         # Write all the table information to the document
-        tableWidth = "p{2.5cm}|p{5.0cm}|p{1.5cm}|p{1.5cm}|p{1.5cm}|p{3.5cm}"
+        tableWidth = "p{2.25cm}|p{7.0cm}|p{1.5cm}|p{1.5cm}|p{1.5cm}|p{3.5cm}"
         labels = ['', 'Communes', 'Routes', 'Partiel', 'Total', 'Horaire Approx']
 
         with doc.create(LongTable((tableWidth))) as data_table:
