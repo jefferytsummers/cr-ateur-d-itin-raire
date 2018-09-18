@@ -31,7 +31,7 @@ class ModdableTableEntry(Entry):
 
         # Initialize the variables stored in the moddable
         # entrybox
-        textMods = ['Italics', 'Bold', 'Underline']
+        textMods = ['Italique', 'Gras', 'Souligner']
         self.checkVars = [IntVar() for _ in range(3)]
 
         # Create and array to store entries
@@ -55,7 +55,6 @@ class ModdableTableEntry(Entry):
         return str(self.checkVars[0].get()) + ' ' + str(self.checkVars[1].get()) \
                + ' ' + str(self.checkVars[2].get())
 
-
 class ModdableEntry(Entry):
     def __init__(self, master, numentries=0, textvariable='', justify='left', width=20):
         # Inherit from tkinter.Entry
@@ -71,7 +70,7 @@ class ModdableEntry(Entry):
 
         # Initialize the variables stored in the moddable
         # entrybox
-        textMods = ['Italique', 'Audacieux', 'Souligner']
+        textMods = ['Italique', 'Gras', 'Souligner']
         self.checkVars = [IntVar() for _ in range(3)]
 
         # Create and array to store entries
@@ -215,7 +214,7 @@ class App(Frame):
         tableLables = ['Time Control', 'Communes', 'Routes', 'Partiel Dist.', 'Total Dist.', 'Horaire Approx']
         for i in range(6):
             Label(LBFrame, text=tableLables[i], relief=GROOVE).pack(side=LEFT, padx=(0,12*((3/4)*i+6)))
-        Button(LBFrame, text='Add Row', command=lambda: self.add_row()).pack(side=RIGHT)
+        Button(LBFrame, text='Add Row', command=lambda: self.add_row()).pack(side=RIGHT)            
         #----------------------------------------------------------------------------------------------------------------------------
 
         # Create the footer
@@ -267,6 +266,7 @@ class App(Frame):
         else:
             return False
 
+
     def add_row(self):
         # Create a temporary frame to store the modded entries in
         tmpFrame = Frame(self.tableFrame)
@@ -277,13 +277,26 @@ class App(Frame):
         tmpEntry = ModdableTableEntry(tmpFrame, numentries=6, textvariables=newTableData)
         print(tmpEntry.state())
         self.tableEntries.append(tmpEntry)
-        Button(tmpFrame, text='X', command=tmpFrame.destroy).pack(side=RIGHT)
+        Button(tmpFrame, text='X', command=lambda: self.remove_row(newTableData, tmpFrame)).pack(side=RIGHT)
+    
 
+    def remove_row(self, data, frame):
+        # Delete a row of a given index in the table
+        self.tableData.remove(data)
+        frame.destroy()
 
     def save_itinerary(self):
+
+        # Let user know that the itinerary will be saved and will erase the current
+        # itinerary
+        if self.itinName.get():
+            answer = messagebox.askokcancel(title='Avertissement tout progrès sera perdu', \
+                        message='Attention l\'itinéraire suivant sera écrasé: %s.json' \
+                        % self.itinName.get())
+        if answer == False:
+            pass
         # Store all class variables into a python dictionary and write to a json
         # file.
-
         # Create the dictionary that stores all of the itinerary info
         self.itinInfo = {
             "Header": [_.get() for _ in self.headerInfo],
@@ -291,7 +304,8 @@ class App(Frame):
             # Check if the entries in the header need to be modified
             "HeaderMods": [_.state() for _ in self.headerEntries],
             "FooterMods": [_.state() for _ in self.footerEntries],
-            "Table": [[_.get() for _ in tableRow] for tableRow in self.tableData]
+            "Table": [[_.get() for _ in tableRow] for tableRow in self.tableData],
+            "ItineraryName": self.itinName.get()
         }
         # Save the itinerary
         saveFileName = self.itinName.get()
@@ -330,6 +344,7 @@ class App(Frame):
                 for j in range(6):
                     self.tableData[i][j].set(self.itinInfo["Table"][i][j])
                 i += 1
+            self.itinName.set(self.itinInfo["ItineraryName"])
 
             # The elements of self.tableData are the rows of StringVar's that the 
             # rows of the table hold. I need to access each individual StringVar
@@ -374,11 +389,11 @@ class App(Frame):
                 align = r'\begin{flushright}'
                 endalign = r'\end{flushright}'
             # left alignment
-            if i == 1 or i == 6:
+            if i == 6:
                 align = r'\begin{flushleft}'
                 endalign = r'\end{flushleft}'
             # center alignment
-            if i == 0 or i == 2 or i == 3 or i == 4:
+            if i == 0 or i == 1 or i == 2 or i == 3 or i == 4:
                 align = r'\begin{center}'
                 endalign = r'\end{center}'
             if string != '':
@@ -415,6 +430,32 @@ class App(Frame):
         tableWidth = "p{2.25cm}|p{7.0cm}|p{1.5cm}|p{1.5cm}|p{1.5cm}|p{3.5cm}"
         labels = ['', 'Communes', 'Routes', 'Partiel', 'Total', 'Horaire Approx']
 
+
+        def modifiedTString(i, string, state):
+            # Check for all possible modifications to the entries
+            # (italics bold underline)
+            if state == '0 0 0': # No modification
+                mod = r''
+            if state == '1 0 0': # Italics
+                mod = r'\textit{'
+            if state == '1 1 0': # Italics and bold
+                mod = r'\textit{\textbf{'
+            if state == '1 1 1': # Italics, bold, and underline
+                mod = r'\textit{\textbf{\underline{'
+            if state == '0 1 1': # Bold and underline
+                mod = r'\textbf{\underline{'
+            if state == '0 0 1': # Underline
+                mod = r'\underline{'
+            if state == '0 1 0': # Bold
+                mod = r'\textbf{'
+            if state == '1 0 1': # Italics and underline
+                mod = r'\textit{\underline{'
+
+            if string != '':
+                return mod + string + '}' *(int(state[0])+int(state[2])+int(state[4]))
+            else:
+                return ' '
+
         with doc.create(LongTable((tableWidth))) as data_table:
             data_table.add_hline()
             data_table.add_row(labels)
@@ -422,9 +463,17 @@ class App(Frame):
             data_table.end_table_header()
             data_table.end_table_footer()
             data_table.end_table_last_footer()
+            i = 0
             for tableRow in self.tableData:
-                row = [_.get() for _ in tableRow]
-                data_table.add_row(row)
+                try:
+                    strings = [NoEscape(r'%s' % modifiedTString(i, _.get(), self.tableEntries[i].state())) for _ in tableRow]
+                    # for string in strings:
+                        # if string != ''
+                    
+                    data_table.add_row(strings)
+                    i += 1
+                except TclError:
+                    continue
             data_table.add_hline()
 
         #------------------------------------------------------------------------------------------------------------
