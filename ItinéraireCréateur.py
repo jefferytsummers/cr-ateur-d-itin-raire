@@ -211,9 +211,9 @@ class App(Frame):
         LBFrame.pack(side=TOP, expand=0)
         labelFrame = Frame(self.tableFrame)
         labelFrame.pack(side=TOP)
-        tableLables = ['Time Control', 'Communes', 'Routes', 'Partiel Dist.', 'Total Dist.', 'Horaire Approx']
-        for i in range(6):
-            Label(LBFrame, text=tableLables[i], relief=GROOVE).pack(side=LEFT, padx=(0,12*((3/4)*i+6)))
+        tableLables = ['Communes', 'Routes', 'Partiel Dist.', 'Total Dist.', 'Horaire Approx']
+        for i in range(5):
+            Label(LBFrame, text=tableLables[i], relief=GROOVE).pack(side=LEFT, padx=(0,12*((1/4)*i+4)))
         Button(LBFrame, text='Add Row', command=lambda: self.add_row()).pack(side=RIGHT)            
         #----------------------------------------------------------------------------------------------------------------------------
 
@@ -275,7 +275,6 @@ class App(Frame):
         self.tableData.append(newTableData)
         
         tmpEntry = ModdableTableEntry(tmpFrame, numentries=6, textvariables=newTableData)
-        print(tmpEntry.state())
         self.tableEntries.append(tmpEntry)
         Button(tmpFrame, text='X', command=lambda: self.remove_row(newTableData, tmpFrame)).pack(side=RIGHT)
     
@@ -427,7 +426,7 @@ class App(Frame):
             i += 1
         #------------------------------------------------------------------------------------------------------------
         # Write all the table information to the document
-        tableWidth = "p{2.25cm}|p{7.0cm}|p{1.5cm}|p{1.5cm}|p{1.5cm}|p{3.5cm}"
+        tableWidth = "p{2.25cm}|p{5.5cm}|p{3.0cm}|p{1.5cm}|p{1.5cm}|p{3.5cm}"
         labels = ['', 'Communes', 'Routes', 'Partiel', 'Total', 'Horaire Approx']
 
 
@@ -510,7 +509,7 @@ class App(Frame):
                 endalign = r'\end{center}'
 
             if string != '':
-                return align + ' ' + mod + string + '}' *(int(state[0])+int(state[2])+int(state[4])) + ' ' + endalign
+                return align + ' ' + mod + '\smash{' + string + '}' + '}' *(int(state[0])+int(state[2])+int(state[4])) + ' ' + endalign
             else:
                 return '%'
         allFooterInfo = []
